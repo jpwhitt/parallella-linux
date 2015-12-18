@@ -9,7 +9,7 @@
 
 #include <linux/slab.h>
 #include <linux/dmaengine.h>
-#include <linux/amba/xilinx_adi_dma.h>
+#include <linux/amba/xilinx_dma_adi.h>
 
 #include <drm/drmP.h>
 #include <drm/drm_crtc_helper.h>

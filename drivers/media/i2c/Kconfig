@@ -473,6 +473,16 @@ config VIDEO_APTINA_PLL
 
 config VIDEO_SMIAPP_PLL
 	tristate
+	
+config VIDEO_OV5647
+	tristate "Omnivision OV5647 (Raspberry Pi) Camera Module"
+	depends on VIDEO_V4L2 && I2C
+	---help---
+	 Support for the OV5647 Raspberry Pi camera with MIPI CSI.
+
+	 To compile this driver as a module, choose M here: the
+	 module will be called ov5647.
+endmenu	
 
 config VIDEO_OV7640
 	tristate "OmniVision OV7640 sensor support"
@@ -685,7 +695,6 @@ config VIDEO_M52790
 
 	 To compile this driver as a module, choose M here: the
 	 module will be called m52790.
-endmenu
 
 menu "Sensors used on soc_camera driver"
 
