@@ -602,6 +602,7 @@ axi_csi_rx_qops_stop_streaming(struct vb2_queue *q)
 
 	gpiod_set_value_cansleep(csi->gpio_led, 0);
 
+	return 0;
 }
 
 static const struct vb2_ops axi_csi_rx_qops = {
