@@ -3,7 +3,7 @@
  *
  * Based on axi-hdmi-rx.c
  *
- * Copyright (C) 2015 Sylvain Munaut <tnt@246tNt.com>
+ * Copyright (C) 2015 Jason Whittaker <jpwhitt@yahoo.com>
  * Copyright (C) 2012-2013 Analog Devices Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -108,11 +108,11 @@ static const struct axi_csi_rx_framesize axi_csi_rx_framesizes[] = {
 struct axi_csi_rx_buffer {
 	struct vb2_buffer vb;
 	struct list_head head;
-    struct axi_csi_rx *csi;
+		struct axi_csi_rx *csi;
 
-    dma_addr_t addr;
-    unsigned int length;
-    unsigned int bytesused;	
+		dma_addr_t addr;
+		unsigned int length;
+		unsigned int bytesused;	
 };
 
 
@@ -154,14 +154,14 @@ struct axi_csi_rx {
 
 static void
 axi_csi_rx_write(struct axi_csi_rx *csi,
-                 unsigned int reg, unsigned int val)
+								 unsigned int reg, unsigned int val)
 {
 	writel(val, csi->base + reg);
 }
 
 static u32
 axi_csi_rx_read(struct axi_csi_rx *csi,
-                unsigned int reg)
+								unsigned int reg)
 {
 	return readl(csi->base + reg);
 }
@@ -188,7 +188,7 @@ static const struct v4l2_file_operations axi_csi_rx_fops = {
 
 static int
 axi_csi_rx_ioctl_querycap(struct file *file, void *priv_fh,
-                          struct v4l2_capability *vcap)
+													struct v4l2_capability *vcap)
 {
 	strlcpy(vcap->driver, DRIVER_NAME, sizeof(vcap->driver));
 	strcpy(vcap->card, "MIPI Camera Serial Interface");
@@ -201,21 +201,21 @@ axi_csi_rx_ioctl_querycap(struct file *file, void *priv_fh,
 
 static int
 axi_csi_rx_ioctl_enum_fmt_vid_cap(struct file *file, void *priv_fh,
-                                  struct v4l2_fmtdesc *f)
+																	struct v4l2_fmtdesc *f)
 {
 
-   if (f->index >= ARRAY_SIZE(axi_csi_rx_fmts))
-     return -EINVAL;
+	 if (f->index >= ARRAY_SIZE(axi_csi_rx_fmts))
+		 return -EINVAL;
 
-   f->pixelformat = axi_csi_rx_fmts[f->index].mbus_code;
-   strlcpy(f->description, axi_csi_rx_fmts[f->index].desc, sizeof(f->description));
+	 f->pixelformat = axi_csi_rx_fmts[f->index].mbus_code;
+	 strlcpy(f->description, axi_csi_rx_fmts[f->index].desc, sizeof(f->description));
 	
 	return 0;
 }
 
 static int
 axi_csi_rx_ioctl_get_fmt_vid_cap(struct file *file, void *priv_fh,
-                                 struct v4l2_format *f)
+																 struct v4l2_format *f)
 {
 	struct axi_csi_rx *csi_rx = video_drvdata(file);
 	struct axi_csi_rx_stream *s = &csi_rx->stream;
@@ -234,8 +234,8 @@ axi_csi_rx_ioctl_get_fmt_vid_cap(struct file *file, void *priv_fh,
 
 static int
 private_try_fmt_vid_cap(struct file *file, void *priv_fh,
-                        struct v4l2_format *fmt_csi, struct v4l2_subdev_format *fmt_cam,
-                        int *fmt_idx)
+												struct v4l2_format *fmt_csi, struct v4l2_subdev_format *fmt_cam,
+												int *fmt_idx)
 {
 	struct axi_csi_rx *csi_rx = video_drvdata(file);
 	struct axi_csi_rx_stream *s = &csi_rx->stream;
@@ -264,7 +264,7 @@ private_try_fmt_vid_cap(struct file *file, void *priv_fh,
 
 static int
 axi_csi_rx_ioctl_try_fmt_vid_cap(struct file *file, void *priv_fh,
-                                 struct v4l2_format *f)
+																 struct v4l2_format *f)
 {
 	struct v4l2_pix_format *pix = &f->fmt.pix;
 	struct v4l2_subdev_format fmt_cam;
@@ -288,13 +288,13 @@ axi_csi_rx_ioctl_try_fmt_vid_cap(struct file *file, void *priv_fh,
 
 static int
 axi_csi_rx_ioctl_set_fmt_vid_cap(struct file *file, void *priv_fh,
-                                 struct v4l2_format *f)
+																 struct v4l2_format *f)
 {
 	struct axi_csi_rx *csi_rx = video_drvdata(file);
 	struct axi_csi_rx_stream *s = &csi_rx->stream;
 	struct v4l2_pix_format *pix = &f->fmt.pix;
 	struct v4l2_subdev_format fmt_cam;
-    struct xilinx_vdma_config config;
+		struct xilinx_vdma_config config;
 	int fmt_idx;
 	int ret;
 	int tl_bias = 2;
@@ -343,18 +343,18 @@ axi_csi_rx_ioctl_set_fmt_vid_cap(struct file *file, void *priv_fh,
 	if (ret)
 		return ret;
 
-     /* Configure the DMA engine. */
-    memset(&config, 0, sizeof(config));
+		 /* Configure the DMA engine. */
+		memset(&config, 0, sizeof(config));
 
-    config.reset = 1;
+		config.reset = 1;
 	xilinx_vdma_channel_set_config(s->chan, &config);	
 
-    config.reset = 0;
-    config.ext_fsync = 1;
-    config.park = 1;
-    config.gen_lock = 0;
-    config.master = 1;
-    config.frm_dly = 0;
+		config.reset = 0;
+		config.ext_fsync = 1;
+		config.park = 1;
+		config.gen_lock = 0;
+		config.master = 1;
+		config.frm_dly = 0;
 
 	xilinx_vdma_channel_set_config(s->chan, &config);	
 
@@ -390,7 +390,7 @@ axi_csi_rx_ioctl_log_status(struct file *file, void *priv_fh)
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int
 axi_csi_rx_ioctl_get_register(struct file *file, void *priv_fh,
-                              struct v4l2_dbg_register *reg)
+															struct v4l2_dbg_register *reg)
 {
 	struct axi_csi_rx *csi = video_drvdata(file);
 
@@ -402,7 +402,7 @@ axi_csi_rx_ioctl_get_register(struct file *file, void *priv_fh,
 
 static int
 axi_csi_rx_ioctl_set_register(struct file *file, void *priv_fh,
-                              const struct v4l2_dbg_register *reg)
+															const struct v4l2_dbg_register *reg)
 {
 	struct axi_csi_rx *csi = video_drvdata(file);
 
@@ -491,10 +491,10 @@ axi_csi_rx_qops_buf_prepare(struct vb2_buffer *vb)
 	struct axi_csi_rx *csi = vb2_get_drv_priv(vb->vb2_queue);
 	struct axi_csi_rx_buffer *buf = to_axi_csi_rx_buffer(vb);
 
-    buf->csi = csi;
-    buf->addr = vb2_dma_contig_plane_dma_addr(vb, 0);
-    buf->length = vb2_plane_size(vb, 0);
-    buf->bytesused = 0;
+		buf->csi = csi;
+		buf->addr = vb2_dma_contig_plane_dma_addr(vb, 0);
+		buf->length = vb2_plane_size(vb, 0);
+		buf->bytesused = 0;
 
 	return 0;
 }
@@ -672,8 +672,8 @@ notifier_to_axi_csi_rx(struct v4l2_async_notifier *n)
 
 static int
 axi_csi_rx_async_bound(struct v4l2_async_notifier *notifier,
-                       struct v4l2_subdev *subdev,
-                       struct v4l2_async_subdev *asd)
+											 struct v4l2_subdev *subdev,
+											 struct v4l2_async_subdev *asd)
 {
 	struct axi_csi_rx *csi = notifier_to_axi_csi_rx(notifier);
 
@@ -843,6 +843,6 @@ static struct platform_driver axi_csi_rx_driver = {
 };
 module_platform_driver(axi_csi_rx_driver);
 
-MODULE_AUTHOR("Sylvain Munaut <tnt@246tNt.com>");
+MODULE_AUTHOR("Jason Whittaker <jpwhitt@yahoo.com>");
 MODULE_DESCRIPTION("MIPI CSI RX interface on AXI bus");
 MODULE_LICENSE("GPL");

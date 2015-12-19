@@ -2,7 +2,6 @@
  * ov5647.c
  *
  * Copyright (C) 2015 Jason Whittaker <jpwhitt@yahoo.com>
- * Copyright (C) 2015 Sylvain Munaut <tnt@246tNt.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -50,8 +49,8 @@ resistor network. Without this the MIPI link won't run at full-speed.
 
 
 struct regval_list {
-  unsigned short addr;
-  unsigned char data;
+	unsigned short addr;
+	unsigned char data;
 };
 
 static struct regval_list sensor_common[] = {
@@ -313,7 +312,7 @@ static struct regval_list sensor_1296_728_30_regs[] = { //720: 1280*720@30fps
 	{ 0x3805, 0x4f }, //[7:0]dvp h end     
 	{ 0x3806, 0x06 }, //[4:0]dvp v end     
 	{ 0x3807, 0xb7 }, //[7:0]dvp v end     
-    { 0x3a08, 0x00 }, //
+		{ 0x3a08, 0x00 }, //
 	{ 0x3a09, 0xdf }, //
 	{ 0x3a0a, 0x00 }, //
 	{ 0x3a0b, 0xba }, //
@@ -324,34 +323,34 @@ static struct regval_list sensor_1296_728_30_regs[] = { //720: 1280*720@30fps
 
 
 static struct regval_list sensor_644_484_60_regs[] = { //VGA: 640*480@60fps
-    { 0x3035, 0x21 }, //clk                
-    { 0x3036, 0x5c }, //clk                
-    { 0x303c, 0x11 }, //clk                
-    { 0x3820, 0x41 }, //vbin               
-    { 0x3821, 0x07 }, //hbin               
+		{ 0x3035, 0x21 }, //clk                
+		{ 0x3036, 0x5c }, //clk                
+		{ 0x303c, 0x11 }, //clk                
+		{ 0x3820, 0x41 }, //vbin               
+		{ 0x3821, 0x07 }, //hbin               
 	{ 0x3612, 0x49 }, //                   
 	{ 0x3618, 0x00 }, //                   
 	{ 0x3708, 0x22 }, //                   
 	{ 0x3709, 0x52 }, //                   
 	{ 0x370c, 0x03 }, //                    
-    { 0x380c, 0x06 }, //[4:0]hts high      
-    { 0x380d, 0xd6 }, //[7:0]hts low       
-    { 0x380e, 0x02 }, //[4:0]vts high      
-    { 0x380f, 0xd0 }, //[7:0]vts low       
-    { 0x3814, 0x71 }, //h subsample inc    
-    { 0x3815, 0x71 }, //v subsample inc    
-    { 0x3808, 0x02 }, //[4:0]dvp h out high
-    { 0x3809, 0x84 }, //[7:0]dvp h out low 
-    { 0x380a, 0x01 }, //[4:0]dvp v out high
-    { 0x380b, 0xe4 }, //[7:0]dvp v out low 
-    { 0x3800, 0x00 }, //[4:0]dvp h start   
-    { 0x3801, 0x10 }, //[7:0]dvp h start   
-    { 0x3802, 0x00 }, //[4:0]dvp v start   
-    { 0x3803, 0x00 }, //[7:0]dvp v start   
-    { 0x3804, 0x0a }, //[4:0]dvp h end     
-    { 0x3805, 0x3f }, //[7:0]dvp h end     
-    { 0x3806, 0x07 }, //[4:0]dvp v end     
-    { 0x3807, 0xaf }, //[7:0]dvp v end     
+		{ 0x380c, 0x06 }, //[4:0]hts high      
+		{ 0x380d, 0xd6 }, //[7:0]hts low       
+		{ 0x380e, 0x02 }, //[4:0]vts high      
+		{ 0x380f, 0xd0 }, //[7:0]vts low       
+		{ 0x3814, 0x71 }, //h subsample inc    
+		{ 0x3815, 0x71 }, //v subsample inc    
+		{ 0x3808, 0x02 }, //[4:0]dvp h out high
+		{ 0x3809, 0x84 }, //[7:0]dvp h out low 
+		{ 0x380a, 0x01 }, //[4:0]dvp v out high
+		{ 0x380b, 0xe4 }, //[7:0]dvp v out low 
+		{ 0x3800, 0x00 }, //[4:0]dvp h start   
+		{ 0x3801, 0x10 }, //[7:0]dvp h start   
+		{ 0x3802, 0x00 }, //[4:0]dvp v start   
+		{ 0x3803, 0x00 }, //[7:0]dvp v start   
+		{ 0x3804, 0x0a }, //[4:0]dvp h end     
+		{ 0x3805, 0x3f }, //[7:0]dvp h end     
+		{ 0x3806, 0x07 }, //[4:0]dvp v end     
+		{ 0x3807, 0xaf }, //[7:0]dvp v end     
 	{ 0x3a08, 0x01 },
 	{ 0x3a09, 0x28 },
 	{ 0x3a0a, 0x00 },
@@ -368,8 +367,8 @@ struct ov5647_framesize {
 	u16 width;
 	u16 height;
 	u8  fps;
-    struct regval_list *regs;
-    int regs_size;
+		struct regval_list *regs;
+		int regs_size;
 };
 
 static const struct ov5647_framesize ov5647_framesizes[] = {
@@ -468,25 +467,25 @@ static int ov5647_reg_write_array(struct ov5647 *s, struct regval_list *regs, in
 {
 	int i=0;
 	
-  if(!regs)
-  	return -EINVAL;
-  
-  while(i<array_size)
-  {
+	if(!regs)
+		return -EINVAL;
+	
+	while(i<array_size)
+	{
 	if(regs->addr == REG_DLY) {
-	  v4l2_dbg(2, debug, s->client, "%s: delay %dms\n",
+		v4l2_dbg(2, debug, s->client, "%s: delay %dms\n",
 		__func__, regs->data);
-      msleep(regs->data);
-    } 
-    else {  
-      	if(ov5647_reg_write(s, regs->addr, regs->data)) {
-  			v4l_err(s->client, "i2c write failed.\n");
-      	}
-    }
-    i++;
-    regs++;
-  }
-  return 0;
+			msleep(regs->data);
+		} 
+		else {  
+				if(ov5647_reg_write(s, regs->addr, regs->data)) {
+				v4l_err(s->client, "i2c write failed.\n");
+				}
+		}
+		i++;
+		regs++;
+	}
+	return 0;
 }
 
 static void
@@ -510,43 +509,43 @@ ov5647_power_off(struct ov5647 *s)
 static int 
 ov5647_get_sysclk(struct ov5647 *s)
 {
-     /* calculate sysclk */
-    int xvclk = s->xclk_freq / 10000;
-    int temp1, temp2;
-    int Multiplier, PreDiv, VCO, SysDiv, Pll_rdiv, Bit_div2x = 1, sclk_rdiv, sysclk;
+		 /* calculate sysclk */
+		int xvclk = s->xclk_freq / 10000;
+		int temp1, temp2;
+		int Multiplier, PreDiv, VCO, SysDiv, Pll_rdiv, Bit_div2x = 1, sclk_rdiv, sysclk;
 
-    int sclk_rdiv_map[] = {1, 2, 4, 8};
+		int sclk_rdiv_map[] = {1, 2, 4, 8};
 
-    temp1 = ov5647_reg_read(s, 0x3034);
-    temp2 = temp1 & 0x0f;
-    if (temp2 == 8 || temp2 == 10) {
-        Bit_div2x = temp2 / 2;
-    }
+		temp1 = ov5647_reg_read(s, 0x3034);
+		temp2 = temp1 & 0x0f;
+		if (temp2 == 8 || temp2 == 10) {
+				Bit_div2x = temp2 / 2;
+		}
 
-    temp1 = ov5647_reg_read(s, 0x3035);
-    SysDiv = temp1>>4;
-    if (SysDiv == 0) {
-           SysDiv = 16;
-    }
+		temp1 = ov5647_reg_read(s, 0x3035);
+		SysDiv = temp1>>4;
+		if (SysDiv == 0) {
+					 SysDiv = 16;
+		}
 
-    temp1 = ov5647_reg_read(s, 0x3036);
-    Multiplier = temp1;
+		temp1 = ov5647_reg_read(s, 0x3036);
+		Multiplier = temp1;
 
-    temp1 = ov5647_reg_read(s, 0x3037);
-    PreDiv = temp1 & 0x0f;
-    Pll_rdiv = ((temp1 >> 4) & 0x01) + 1;
+		temp1 = ov5647_reg_read(s, 0x3037);
+		PreDiv = temp1 & 0x0f;
+		Pll_rdiv = ((temp1 >> 4) & 0x01) + 1;
 
-    temp1 = ov5647_reg_read(s, 0x3108);
-    temp2 = temp1 & 0x03;
-    sclk_rdiv = sclk_rdiv_map[temp2];
+		temp1 = ov5647_reg_read(s, 0x3108);
+		temp2 = temp1 & 0x03;
+		sclk_rdiv = sclk_rdiv_map[temp2];
 
-    VCO = xvclk * Multiplier / PreDiv;
+		VCO = xvclk * Multiplier / PreDiv;
 
-    sysclk = VCO / SysDiv / Pll_rdiv * 2 / Bit_div2x / sclk_rdiv;
+		sysclk = VCO / SysDiv / Pll_rdiv * 2 / Bit_div2x / sclk_rdiv;
 
-    pr_info("sysclk is %ikHz\n", sysclk);
+		pr_info("sysclk is %ikHz\n", sysclk);
 
-    return sysclk;
+		return sysclk;
 }
 
 
@@ -562,7 +561,7 @@ static inline struct ov5647 *to_sensor(struct v4l2_subdev *sd)
 
 static int
 ov5647_co_get_register(struct v4l2_subdev *sd,
-                       struct v4l2_dbg_register *reg)
+											 struct v4l2_dbg_register *reg)
 {
 	struct ov5647 *s = to_sensor(sd);
 	reg->val = ov5647_reg_read(s, reg->reg & 0xffff);
@@ -572,7 +571,7 @@ ov5647_co_get_register(struct v4l2_subdev *sd,
 
 static int
 ov5647_co_set_register(struct v4l2_subdev *sd,
-                       const struct v4l2_dbg_register *reg)
+											 const struct v4l2_dbg_register *reg)
 {
 	struct ov5647 *s = to_sensor(sd);
 	ov5647_reg_write(s, reg->reg & 0xffff, reg->val & 0xff);
@@ -592,9 +591,9 @@ ov5647_co_set_power(struct v4l2_subdev *sd, int on)
 
 		ret = ov5647_reg_write_array(s, sensor_common, ARRAY_SIZE(sensor_common));
 		if(ret < 0) {
-	    	v4l_err(s->client, "sensor initialisation error\n");
-	    	return ret;
-	  	}	
+				v4l_err(s->client, "sensor initialisation error\n");
+				return ret;
+			}	
 	} else
 		ov5647_power_off(s);
 
@@ -614,14 +613,14 @@ static const struct v4l2_subdev_core_ops ov5647_subdev_core_ops = {
 
 static int
 ov5647_po_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-                         struct v4l2_subdev_mbus_code_enum *code)
+												 struct v4l2_subdev_mbus_code_enum *code)
 {
 	return 0;
 }
 
 static int
 ov5647_po_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-                          struct v4l2_subdev_frame_size_enum *fse)
+													struct v4l2_subdev_frame_size_enum *fse)
 {
 	
 	if (fse->index >= ARRAY_SIZE(ov5647_framesizes))
@@ -635,7 +634,7 @@ ov5647_po_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
 
 static int
 ov5647_po_enum_frame_interval(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-                              struct v4l2_subdev_frame_interval_enum *fie)
+															struct v4l2_subdev_frame_interval_enum *fie)
 {
 	pr_info("ov5647_po_enum_frame_interval\n");
 
@@ -656,11 +655,11 @@ ov5647_try_format(struct ov5647 *s, struct v4l2_mbus_framefmt *fmt, struct ov564
 		Check requested frame sizes against available and 
 		choose the smallest that still fits the frame.
 	*/
-    for (i = 0; i < ARRAY_SIZE(ov5647_framesizes); i++) 
-    	{
-		    fs = &ov5647_framesizes[i];
-		    if (fmt->width <= fs->width && fmt->height <= fs->height)
-		      break;
+		for (i = 0; i < ARRAY_SIZE(ov5647_framesizes); i++) 
+			{
+				fs = &ov5647_framesizes[i];
+				if (fmt->width <= fs->width && fmt->height <= fs->height)
+					break;
 		}
 
 	fmt->width  = fs->width;
@@ -675,7 +674,7 @@ ov5647_try_format(struct ov5647 *s, struct v4l2_mbus_framefmt *fmt, struct ov564
 
 static int
 ov5647_po_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-                  struct v4l2_subdev_format *format)
+									struct v4l2_subdev_format *format)
 {
 	struct ov5647 *s = to_sensor(sd);
 	struct v4l2_mbus_framefmt *mf = &format->format;
@@ -693,7 +692,7 @@ ov5647_po_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
 
 static int
 ov5647_po_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-                  struct v4l2_subdev_format *format)
+									struct v4l2_subdev_format *format)
 {
 
 	struct ov5647 *s = to_sensor(sd);
@@ -716,26 +715,26 @@ ov5647_po_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
 
 	ret = ov5647_reg_write_array(s, fsize->regs, fsize->regs_size);
 	if(ret < 0) {
-    	v4l_err(s->client, "set format error\n");
-    	return ret;
-  	}
+			v4l_err(s->client, "set format error\n");
+			return ret;
+		}
 
-    /* read PCLK */
-    ov5647_get_sysclk(s);  	
+		/* read PCLK */
+		ov5647_get_sysclk(s);  	
 
 	return 0;
 }
 
 static int
 ov5647_po_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-                   struct v4l2_subdev_crop *crop)
+									 struct v4l2_subdev_crop *crop)
 {
 	return 0; /* FIXME */
 }
 
 static int
 ov5647_po_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-                   struct v4l2_subdev_crop *crop)
+									 struct v4l2_subdev_crop *crop)
 {
 	return 0; /* FIXME */
 }
@@ -833,7 +832,7 @@ ov5647_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	ov5647_power_on(s);
 
 	if ((ov5647_reg_read(s, 0x300A) != 0x56) ||
-	    (ov5647_reg_read(s, 0x300B) != 0x47))
+			(ov5647_reg_read(s, 0x300B) != 0x47))
 	{
 		v4l_err(client, "chip not found\n");
 		return -ENODEV;
@@ -909,6 +908,6 @@ static struct i2c_driver ov5647_driver = {
 };
 module_i2c_driver(ov5647_driver);
 
-MODULE_AUTHOR("Sylvain Munaut <tnt@246tNt.com>");
+MODULE_AUTHOR("Jason Whittaker <jpwhitt@yahoo.com>");
 MODULE_DESCRIPTION("Omnivision OV5647 5MP sensor driver (MIPI CSI-2 mode)");
 MODULE_LICENSE("GPL");
