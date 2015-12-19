@@ -20,7 +20,7 @@
 #include "../../staging/iio/ring_hw.h"
 #include "cf_axi_dds.h"
 
-#include <linux/amba/xilinx_dma.h>
+#include <linux/amba/xilinx_dma_adi.h>
 
 #define VDMA_MAX_HSIZE	0xFFFF
 #define VDMA_MAX_VSIZE	0xFFF
