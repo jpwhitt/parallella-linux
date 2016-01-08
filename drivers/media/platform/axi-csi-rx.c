@@ -33,6 +33,10 @@
 
 #define DRIVER_NAME "axi-csi-rx"
 
+static int phydelay = -3;
+module_param(phydelay, int, S_IRUGO);
+MODULE_PARM_DESC(phydelay, "Phy LVDS timing parameter [-31..+31]"); 
+
 /* CSI Registers */
 #define AXI_CSI_RX_REG_CR	0x00
 #define AXI_CSI_RX_REG_SR	0x04
@@ -44,6 +48,9 @@
 #define AXI_CSI_RX_REG_VCCE	0x24
 #define AXI_CSI_RX_REG_VCLS	0x28
 #define AXI_CSI_RX_REG_VCLE	0x2C
+
+#define PDCR_PHYDELAY_CLK  (1 << 28)
+#define PDCR_PHYDELAY_DATA (0xf << 24)
 
 
 #ifndef V4L2_PIX_FMT_SBGGR10P
@@ -65,10 +72,10 @@ static const struct axi_csi_rx_fmt_desc axi_csi_rx_fmts[] = {
 	{ "Raw Bayer SBGGR10P", 0x000000, 5, V4L2_PIX_FMT_SBGGR10P}, /* x xx xxxxxxxx 00 00 */
 	{ "Bayer 10-bit BGGR",  0xa00022, 2, V4L2_PIX_FMT_SBGGR10},  /* 1 10 xxxxxxxx 10 10 */
 	{ "Bayer 8-bit BGGR",   0x800023, 1, V4L2_PIX_FMT_SBGGR8},   /* 1 00 xxxxxxxx 10 11 */
-	{ "rgbz32",     		0x803930, 4, V4L2_PIX_FMT_RGB32},    /* 1 xx 00111001 11 00 */
-	{ "bgrz32",     		0x801b30, 4, V4L2_PIX_FMT_BGR32},    /* 1 xx 00011011 11 00 */
-	{ "gray8",      		0x800233, 1, V4L2_PIX_FMT_GREY},     /* 1 xx xxxxxx10 11 11 */
-	{ "RGB565 (LE)",	    0x803912, 2, V4L2_PIX_FMT_RGB565},   /* 1 xx 00111001 01 10 */
+	{ "rgbz32",             0x803930, 4, V4L2_PIX_FMT_RGB32},    /* 1 xx 00111001 11 00 */
+	{ "bgrz32",             0x801b30, 4, V4L2_PIX_FMT_BGR32},    /* 1 xx 00011011 11 00 */
+	{ "gray8",              0x800233, 1, V4L2_PIX_FMT_GREY},     /* 1 xx xxxxxx10 11 11 */
+	{ "RGB565 (LE)",        0x803912, 2, V4L2_PIX_FMT_RGB565},   /* 1 xx 00111001 01 10 */
 };
 
 struct axi_csi_rx_framesize {
@@ -108,11 +115,11 @@ static const struct axi_csi_rx_framesize axi_csi_rx_framesizes[] = {
 struct axi_csi_rx_buffer {
 	struct vb2_buffer vb;
 	struct list_head head;
-		struct axi_csi_rx *csi;
+	struct axi_csi_rx *csi;
 
-		dma_addr_t addr;
-		unsigned int length;
-		unsigned int bytesused;	
+	dma_addr_t addr;
+	unsigned int length;
+	unsigned int bytesused;	
 };
 
 
@@ -138,12 +145,9 @@ struct axi_csi_rx_stream {
 struct axi_csi_rx {
 	struct v4l2_device v4l2_dev;
 	struct vb2_alloc_ctx *alloc_ctx;
-
 	struct axi_csi_rx_stream stream;
-
 	void __iomem *base;
 	struct gpio_desc *gpio_led;
-
 	struct v4l2_async_notifier notifier;
 	struct v4l2_async_subdev asd;
 	struct v4l2_async_subdev *asds[1];
@@ -175,7 +179,7 @@ axi_csi_rx_read(struct axi_csi_rx *csi,
 
 static const struct v4l2_file_operations axi_csi_rx_fops = {
 	.owner		= THIS_MODULE,
-	.open		= v4l2_fh_open,
+	.open  		= v4l2_fh_open,
 	.release	= vb2_fop_release,
 	.unlocked_ioctl	= video_ioctl2,
 	.read		= vb2_fop_read,
@@ -251,7 +255,18 @@ private_try_fmt_vid_cap(struct file *file, void *priv_fh,
 		}
 	}
 
+	/* Return a valid format if none match */
+	if (i == ARRAY_SIZE(axi_csi_rx_fmts)) {
+		i--;
+		pix->pixelformat = axi_csi_rx_fmts[i].mbus_code;
+	}
+
 	*fmt_idx = i;
+
+	pix->bytesperline = pix->width * axi_csi_rx_fmts[i].bpp;
+	pix->colorspace = V4L2_COLORSPACE_SRGB;
+	pix->sizeimage = pix->bytesperline * pix->height;
+	pix->field = V4L2_FIELD_NONE;	
 
 	v4l2_fill_mbus_format(&fmt_cam->format, pix, 0);
 
@@ -278,11 +293,6 @@ axi_csi_rx_ioctl_try_fmt_vid_cap(struct file *file, void *priv_fh,
 		pix->height = fmt_cam.format.height;
 	}	
 
-	pix->bytesperline = pix->width * axi_csi_rx_fmts[fmt_idx].bpp;
-	pix->colorspace = V4L2_COLORSPACE_SRGB;;
-	pix->sizeimage = pix->bytesperline * pix->height;
-	pix->field = V4L2_FIELD_NONE;
-
 	return 0;
 }
 
@@ -294,7 +304,7 @@ axi_csi_rx_ioctl_set_fmt_vid_cap(struct file *file, void *priv_fh,
 	struct axi_csi_rx_stream *s = &csi_rx->stream;
 	struct v4l2_pix_format *pix = &f->fmt.pix;
 	struct v4l2_subdev_format fmt_cam;
-		struct xilinx_vdma_config config;
+	struct xilinx_vdma_config config;
 	int fmt_idx;
 	int ret;
 	int tl_bias = 2;
@@ -343,18 +353,18 @@ axi_csi_rx_ioctl_set_fmt_vid_cap(struct file *file, void *priv_fh,
 	if (ret)
 		return ret;
 
-		 /* Configure the DMA engine. */
-		memset(&config, 0, sizeof(config));
+	 /* Configure the DMA engine. */
+	memset(&config, 0, sizeof(config));
 
-		config.reset = 1;
+	config.reset = 1;
 	xilinx_vdma_channel_set_config(s->chan, &config);	
 
-		config.reset = 0;
-		config.ext_fsync = 1;
-		config.park = 1;
-		config.gen_lock = 0;
-		config.master = 1;
-		config.frm_dly = 0;
+	config.reset = 0;
+	config.ext_fsync = 1;
+	config.park = 1;
+	config.gen_lock = 0;
+	config.master = 1;
+	config.frm_dly = 0;
 
 	xilinx_vdma_channel_set_config(s->chan, &config);	
 
@@ -366,12 +376,65 @@ axi_csi_rx_ioctl_enum_framesizes(struct file *file, void *priv_fh,
 					 struct v4l2_frmsizeenum *fsize)
 {
 
+	int i;
+
 	if (fsize->index >= ARRAY_SIZE(axi_csi_rx_framesizes))
 	return -EINVAL;
+
+	for (i = 0; i < ARRAY_SIZE(axi_csi_rx_fmts); i++)
+		if (axi_csi_rx_fmts[i].mbus_code == fsize->pixel_format)
+				break;
+	
+	if(i == ARRAY_SIZE(axi_csi_rx_fmts))
+		return -EINVAL;
 
 	fsize->discrete.width  = axi_csi_rx_framesizes[fsize->index].width;
 	fsize->discrete.height = axi_csi_rx_framesizes[fsize->index].height;
 	fsize->type            = V4L2_FRMSIZE_TYPE_DISCRETE;
+
+	return 0;
+}
+
+static int 
+axi_csi_rx_ioctl_enum_frameintervals(struct file *file, void *priv_fh,
+					 struct v4l2_frmivalenum *fival)
+{
+	struct axi_csi_rx *csi_rx = video_drvdata(file);
+	struct axi_csi_rx_stream *s = &csi_rx->stream;
+	struct v4l2_subdev_frame_interval_enum frmint_cam;
+	int i;
+	int ret;
+
+	if (fival->index)
+		return -EINVAL;
+
+	for (i = 0; i < ARRAY_SIZE(axi_csi_rx_framesizes); i++)
+		if (fival->width == axi_csi_rx_framesizes[i].width &&
+				fival->height == axi_csi_rx_framesizes[i].height)
+						break;
+
+	if (i == ARRAY_SIZE(axi_csi_rx_framesizes))
+	return -EINVAL;
+
+	for (i = 0; i < ARRAY_SIZE(axi_csi_rx_fmts); i++)
+		if (axi_csi_rx_fmts[i].mbus_code == fival->pixel_format)
+				break;
+	
+	if(i == ARRAY_SIZE(axi_csi_rx_fmts))
+		return -EINVAL;
+
+	frmint_cam.index = 0;
+	frmint_cam.code = fival->pixel_format;
+	frmint_cam.width = fival->width;
+	frmint_cam.height = fival->height;
+	frmint_cam.pad = 0;
+
+	ret = v4l2_subdev_call(s->subdev, pad, enum_frame_interval, NULL, &frmint_cam);
+	if (ret)
+		return ret;        
+
+	fival->discrete = frmint_cam.interval;
+	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
 
 	return 0;
 }
@@ -413,24 +476,25 @@ axi_csi_rx_ioctl_set_register(struct file *file, void *priv_fh,
 #endif
 
 static const struct v4l2_ioctl_ops axi_csi_rx_ioctl_ops = {
-	.vidioc_querycap			= axi_csi_rx_ioctl_querycap,
-	.vidioc_enum_fmt_vid_cap	= axi_csi_rx_ioctl_enum_fmt_vid_cap,
-	.vidioc_g_fmt_vid_cap		= axi_csi_rx_ioctl_get_fmt_vid_cap,
-	.vidioc_s_fmt_vid_cap		= axi_csi_rx_ioctl_set_fmt_vid_cap,
-	.vidioc_try_fmt_vid_cap		= axi_csi_rx_ioctl_try_fmt_vid_cap,
-	.vidioc_enum_framesizes  	= axi_csi_rx_ioctl_enum_framesizes,
-	.vidioc_log_status			= axi_csi_rx_ioctl_log_status,
-	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
+	.vidioc_querycap = axi_csi_rx_ioctl_querycap,
+	.vidioc_enum_fmt_vid_cap = axi_csi_rx_ioctl_enum_fmt_vid_cap,
+	.vidioc_g_fmt_vid_cap	= axi_csi_rx_ioctl_get_fmt_vid_cap,
+	.vidioc_s_fmt_vid_cap	= axi_csi_rx_ioctl_set_fmt_vid_cap,
+	.vidioc_try_fmt_vid_cap	= axi_csi_rx_ioctl_try_fmt_vid_cap,
+	.vidioc_enum_framesizes = axi_csi_rx_ioctl_enum_framesizes,
+	.vidioc_enum_frameintervals = axi_csi_rx_ioctl_enum_frameintervals,
+	.vidioc_log_status = axi_csi_rx_ioctl_log_status,
+	.vidioc_subscribe_event	= v4l2_ctrl_subscribe_event,
 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-	.vidioc_reqbufs				= vb2_ioctl_reqbufs,
-	.vidioc_querybuf			= vb2_ioctl_querybuf,
-	.vidioc_qbuf				= vb2_ioctl_qbuf,
-	.vidioc_dqbuf				= vb2_ioctl_dqbuf,
-	.vidioc_create_bufs			= vb2_ioctl_create_bufs,
-	.vidioc_prepare_buf			= vb2_ioctl_prepare_buf,
-	.vidioc_expbuf              = vb2_ioctl_expbuf,
-	.vidioc_streamon			= vb2_ioctl_streamon,
-	.vidioc_streamoff			= vb2_ioctl_streamoff,
+	.vidioc_reqbufs	= vb2_ioctl_reqbufs,
+	.vidioc_querybuf = vb2_ioctl_querybuf,
+	.vidioc_qbuf = vb2_ioctl_qbuf,
+	.vidioc_dqbuf = vb2_ioctl_dqbuf,
+	.vidioc_create_bufs = vb2_ioctl_create_bufs,
+	.vidioc_prepare_buf = vb2_ioctl_prepare_buf,
+	.vidioc_expbuf = vb2_ioctl_expbuf,
+	.vidioc_streamon = vb2_ioctl_streamon,
+	.vidioc_streamoff = vb2_ioctl_streamoff,
 
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
@@ -491,10 +555,10 @@ axi_csi_rx_qops_buf_prepare(struct vb2_buffer *vb)
 	struct axi_csi_rx *csi = vb2_get_drv_priv(vb->vb2_queue);
 	struct axi_csi_rx_buffer *buf = to_axi_csi_rx_buffer(vb);
 
-		buf->csi = csi;
-		buf->addr = vb2_dma_contig_plane_dma_addr(vb, 0);
-		buf->length = vb2_plane_size(vb, 0);
-		buf->bytesused = 0;
+	buf->csi = csi;
+	buf->addr = vb2_dma_contig_plane_dma_addr(vb, 0);
+	buf->length = vb2_plane_size(vb, 0);
+	buf->bytesused = 0;
 
 	return 0;
 }
@@ -682,6 +746,7 @@ axi_csi_rx_async_bound(struct v4l2_async_notifier *notifier,
 	return 0;
 }
 
+
 static int
 axi_csi_rx_async_complete(struct v4l2_async_notifier *notifier)
 {
@@ -695,7 +760,74 @@ axi_csi_rx_async_complete(struct v4l2_async_notifier *notifier)
 	return axi_csi_rx_nodes_register(csi);
 }
 
+/* sysfs nodes   ------------------------------------------------------- */
 
+static ssize_t
+axi_csi_show_errors(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct axi_csi_rx *csi = dev_get_drvdata(dev);
+	u32 reg;
+
+	reg = axi_csi_rx_read(csi, AXI_CSI_RX_REG_ER);
+	return scnprintf(buf, PAGE_SIZE, "CSI ER: %08x [ %s%s%s%s%s%s%s%s%s]\n", reg,
+		(reg & (1 << 19)) ? "phy_overflow "  : "",
+		(reg & (1 << 18)) ? "phy_early_lp "  : "",
+		(reg & (1 << 17)) ? "phy_bad_ecc "   : "",
+		(reg & (1 << 16)) ? "phy_late_sync " : "",
+		(reg & (1 <<  4)) ? "pp_late_last "  : "",
+		(reg & (1 <<  3)) ? "pp_early_last " : "",
+		(reg & (1 <<  2)) ? "pp_unk_pkt "    : "",
+		(reg & (1 <<  1)) ? "pp_early_sof "  : "",
+		(reg & (1 <<  0)) ? "pp_no_hdr "     : ""
+	);
+
+}
+
+static ssize_t 
+axi_csi_clear_errors(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct axi_csi_rx *csi = dev_get_drvdata(dev);
+
+	axi_csi_rx_write(csi, AXI_CSI_RX_REG_ER, 0x000f001f);
+
+	return count;
+}
+
+static int
+axi_csi_set_phydelay(struct axi_csi_rx *csi, int offset)
+{
+
+	if (abs(offset) > 31)
+		return -EINVAL;
+
+	axi_csi_rx_write(csi, AXI_CSI_RX_REG_PDCR, PDCR_PHYDELAY_CLK | PDCR_PHYDELAY_DATA);
+	
+	if (offset < 0) 
+		axi_csi_rx_write(csi, AXI_CSI_RX_REG_PDCR, PDCR_PHYDELAY_DATA | abs(offset));
+	else 
+		axi_csi_rx_write(csi, AXI_CSI_RX_REG_PDCR, PDCR_PHYDELAY_CLK | abs(offset));
+
+	return 0;
+
+}
+
+static ssize_t 
+axi_csi_store_phydelay(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct axi_csi_rx *csi = dev_get_drvdata(dev);
+	u32 offset;
+
+	if (!count)
+		return -EINVAL;
+
+	sscanf(buf, "%d\n", &offset);
+	axi_csi_set_phydelay(csi, offset);
+
+	return count;
+}
+
+static DEVICE_ATTR(errors, 0644, axi_csi_show_errors, axi_csi_clear_errors);
+static DEVICE_ATTR(phydelay, 0222, NULL, axi_csi_store_phydelay);
 
 
 /* Platform Driver  ------------------------------------------------------- */
@@ -742,7 +874,6 @@ axi_csi_rx_probe(struct platform_device *pdev)
 	if (!csi->stream.chan)
 		return -EPROBE_DEFER;
 
-
 	/* V4L2 setup */
 	csi->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
 	if (IS_ERR(csi->alloc_ctx)) {
@@ -781,6 +912,18 @@ axi_csi_rx_probe(struct platform_device *pdev)
 		goto err_device_unregister;
 	}
 
+	if ( device_create_file(&pdev->dev, &dev_attr_errors) != 0 )
+	{
+			dev_err(&pdev->dev, "Failed to create sysfs attribute `errors`\n");
+	}
+
+	if ( device_create_file(&pdev->dev, &dev_attr_phydelay) != 0 )
+	{
+			dev_err(&pdev->dev, "Failed to create sysfs attribute `phydelay`\n");
+	}
+
+	axi_csi_set_phydelay(csi, phydelay);
+
 	/* Init result */
 	dev_info(&pdev->dev, "Regs     : 0x%08x -> 0x%08x [%s]\n",
 		regs->start, regs->end, regs->name);
@@ -807,6 +950,8 @@ axi_csi_rx_remove(struct platform_device *pdev)
 
 	dev_info(&pdev->dev, "remove\n");
 
+	device_remove_file(&pdev->dev, &dev_attr_errors);
+	device_remove_file(&pdev->dev, &dev_attr_phydelay);
 
 	if (csi->stream.chan)
 		dma_release_channel(csi->stream.chan);

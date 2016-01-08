@@ -40,11 +40,6 @@ struct ov5647 {
 };
 
 
-/*
-Lacking a proper D-Phy, the porcupine board needs a level-shifting
-resistor network. Without this the MIPI link won't run at full-speed.
-*/
-//#define LEVELSHIFTERS		//Un-comment if you have a porcupine board with resistor network
 #define REG_DLY  0xffff
 
 
@@ -78,7 +73,7 @@ static struct regval_list sensor_common[] = {
 	{ 0x3001, 0x00 },
 	{ 0x3002, 0x00 },
 	{ 0x3016, 0x08 },
-	{ 0x3017, 0xe0 },
+	{ 0x3017, 0x10 },
 	{ 0x3018, 0x44 },
 	{ 0x301c, 0xf8 },
 	{ 0x301d, 0xf0 },
@@ -130,6 +125,7 @@ static struct regval_list sensor_common[] = {
 //	{ 0x4837, 0x24 },
 	{ 0x4050, 0x6e },
 	{ 0x4051, 0x8f },
+	{ 0x3022, 0x07 },
 };
 
 
@@ -142,11 +138,7 @@ static struct regval_list sensor_common[] = {
 	*/
 static struct regval_list sensor_2592_1944_15[] = {
 	{ 0x3035, 0x21 },
-#ifdef LEVELSHIFTERS	
 	{ 0x3036, 0x66 },
-#else
-	{ 0x3036, 0x5c },
-#endif
 	{ 0x303c, 0x11 },
 	{ 0x3821, 0x06 },
 	{ 0x3820, 0x00 },
@@ -191,11 +183,7 @@ static struct regval_list sensor_2592_1944_15[] = {
 	 */
 static struct regval_list sensor_1936_1088_30[] = {
 	{ 0x3035, 0x21 },
-#ifdef LEVELSHIFTERS	
 	{ 0x3036, 0x64 },
-#else
-	{ 0x3036, 0x5c },
-#endif	
 	{ 0x303c, 0x11 },
 	{ 0x3821, 0x06 },
 	{ 0x3820, 0x00 },
@@ -312,7 +300,7 @@ static struct regval_list sensor_1296_728_30_regs[] = { //720: 1280*720@30fps
 	{ 0x3805, 0x4f }, //[7:0]dvp h end     
 	{ 0x3806, 0x06 }, //[4:0]dvp v end     
 	{ 0x3807, 0xb7 }, //[7:0]dvp v end     
-		{ 0x3a08, 0x00 }, //
+	{ 0x3a08, 0x00 }, //
 	{ 0x3a09, 0xdf }, //
 	{ 0x3a0a, 0x00 }, //
 	{ 0x3a0b, 0xba }, //
@@ -323,34 +311,34 @@ static struct regval_list sensor_1296_728_30_regs[] = { //720: 1280*720@30fps
 
 
 static struct regval_list sensor_644_484_60_regs[] = { //VGA: 640*480@60fps
-		{ 0x3035, 0x21 }, //clk                
-		{ 0x3036, 0x5c }, //clk                
-		{ 0x303c, 0x11 }, //clk                
-		{ 0x3820, 0x41 }, //vbin               
-		{ 0x3821, 0x07 }, //hbin               
+	{ 0x3035, 0x21 }, //clk                
+	{ 0x3036, 0x64 }, //clk                
+	{ 0x303c, 0x11 }, //clk                
+	{ 0x3820, 0x41 }, //vbin               
+	{ 0x3821, 0x07 }, //hbin               
 	{ 0x3612, 0x49 }, //                   
 	{ 0x3618, 0x00 }, //                   
 	{ 0x3708, 0x22 }, //                   
 	{ 0x3709, 0x52 }, //                   
 	{ 0x370c, 0x03 }, //                    
-		{ 0x380c, 0x06 }, //[4:0]hts high      
-		{ 0x380d, 0xd6 }, //[7:0]hts low       
-		{ 0x380e, 0x02 }, //[4:0]vts high      
-		{ 0x380f, 0xd0 }, //[7:0]vts low       
-		{ 0x3814, 0x71 }, //h subsample inc    
-		{ 0x3815, 0x71 }, //v subsample inc    
-		{ 0x3808, 0x02 }, //[4:0]dvp h out high
-		{ 0x3809, 0x84 }, //[7:0]dvp h out low 
-		{ 0x380a, 0x01 }, //[4:0]dvp v out high
-		{ 0x380b, 0xe4 }, //[7:0]dvp v out low 
-		{ 0x3800, 0x00 }, //[4:0]dvp h start   
-		{ 0x3801, 0x10 }, //[7:0]dvp h start   
-		{ 0x3802, 0x00 }, //[4:0]dvp v start   
-		{ 0x3803, 0x00 }, //[7:0]dvp v start   
-		{ 0x3804, 0x0a }, //[4:0]dvp h end     
-		{ 0x3805, 0x3f }, //[7:0]dvp h end     
-		{ 0x3806, 0x07 }, //[4:0]dvp v end     
-		{ 0x3807, 0xaf }, //[7:0]dvp v end     
+	{ 0x380c, 0x06 }, //[4:0]hts high      
+	{ 0x380d, 0xd6 }, //[7:0]hts low       
+	{ 0x380e, 0x03 }, //[4:0]vts high      
+	{ 0x380f, 0x20 }, //[7:0]vts low       
+	{ 0x3814, 0x71 }, //h subsample inc    
+	{ 0x3815, 0x71 }, //v subsample inc    
+	{ 0x3808, 0x02 }, //[4:0]dvp h out high
+	{ 0x3809, 0x84 }, //[7:0]dvp h out low 
+	{ 0x380a, 0x01 }, //[4:0]dvp v out high
+	{ 0x380b, 0xe4 }, //[7:0]dvp v out low 
+	{ 0x3800, 0x00 }, //[4:0]dvp h start   
+	{ 0x3801, 0x10 }, //[7:0]dvp h start   
+	{ 0x3802, 0x00 }, //[4:0]dvp v start   
+	{ 0x3803, 0x00 }, //[7:0]dvp v start   
+	{ 0x3804, 0x0a }, //[4:0]dvp h end     
+	{ 0x3805, 0x3f }, //[7:0]dvp h end     
+	{ 0x3806, 0x07 }, //[4:0]dvp v end     
+	{ 0x3807, 0xaf }, //[7:0]dvp v end     
 	{ 0x3a08, 0x01 },
 	{ 0x3a09, 0x28 },
 	{ 0x3a0a, 0x00 },
@@ -373,35 +361,35 @@ struct ov5647_framesize {
 
 static const struct ov5647_framesize ov5647_framesizes[] = {
 	{
-		.width		= 644,
-		.height		= 484,
-		.fps        = 60,
-		.regs		= sensor_644_484_60_regs,
-		.regs_size  = ARRAY_SIZE(sensor_644_484_60_regs)
+		.width  = 644,
+		.height = 484,
+		.fps    = 60,
+		.regs   = sensor_644_484_60_regs,
+		.regs_size = ARRAY_SIZE(sensor_644_484_60_regs)
 	}, {
-		.width		= 1296,
-		.height		= 728,
-		.fps        = 30,
-		.regs		= sensor_1296_728_30_regs,
+		.width  = 1296,
+		.height = 728,
+		.fps    = 30,
+		.regs   = sensor_1296_728_30_regs,
 		.regs_size  = ARRAY_SIZE(sensor_1296_728_30_regs)
 	}, {
-		.width		= 1296,
-		.height		= 968,
-		.fps        = 30,
-		.regs		= sensor_1296_968_30,
-		.regs_size  = ARRAY_SIZE(sensor_1296_968_30)
+		.width  = 1296,
+		.height = 968,
+		.fps    = 30,
+		.regs   = sensor_1296_968_30,
+		.regs_size = ARRAY_SIZE(sensor_1296_968_30)
 	}, {
-		.width		= 1936,
-		.height		= 1088,
-		.fps        = 30,
-		.regs		= sensor_1936_1088_30,
-		.regs_size  = ARRAY_SIZE(sensor_1936_1088_30)
+		.width  = 1936,
+		.height	= 1088,
+		.fps    = 30,
+		.regs   = sensor_1936_1088_30,
+		.regs_size = ARRAY_SIZE(sensor_1936_1088_30)
 	}, {
-		.width		= 2592,
-		.height		= 1944,
-		.fps        = 15,
-		.regs		= sensor_2592_1944_15,
-		.regs_size  = ARRAY_SIZE(sensor_2592_1944_15)
+		.width  = 2592,
+		.height	= 1944,
+		.fps    = 15,
+		.regs   = sensor_2592_1944_15,
+		.regs_size = ARRAY_SIZE(sensor_2592_1944_15)
 	}
 };
 
@@ -636,9 +624,23 @@ static int
 ov5647_po_enum_frame_interval(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
 															struct v4l2_subdev_frame_interval_enum *fie)
 {
-	pr_info("ov5647_po_enum_frame_interval\n");
+	const struct ov5647_framesize *fs;
+	int i;
 
-	return 0; /* FIXME */
+	if (fie->index >= ARRAY_SIZE(ov5647_framesizes))
+		return -EINVAL;
+
+	for (i = 0; i < ARRAY_SIZE(ov5647_framesizes); i++) 
+		{
+			fs = &ov5647_framesizes[i];
+			if (fie->width <= fs->width && fie->height <= fs->height)
+				break;
+	}
+
+	fie->interval.numerator = 1;
+	fie->interval.denominator = fs->fps;
+
+	return 0;
 }
 
 static int
@@ -655,12 +657,12 @@ ov5647_try_format(struct ov5647 *s, struct v4l2_mbus_framefmt *fmt, struct ov564
 		Check requested frame sizes against available and 
 		choose the smallest that still fits the frame.
 	*/
-		for (i = 0; i < ARRAY_SIZE(ov5647_framesizes); i++) 
-			{
-				fs = &ov5647_framesizes[i];
-				if (fmt->width <= fs->width && fmt->height <= fs->height)
-					break;
-		}
+	for (i = 0; i < ARRAY_SIZE(ov5647_framesizes); i++) 
+		{
+			fs = &ov5647_framesizes[i];
+			if (fmt->width <= fs->width && fmt->height <= fs->height)
+				break;
+	}
 
 	fmt->width  = fs->width;
 	fmt->height = fs->height;
@@ -740,13 +742,13 @@ ov5647_po_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
 }
 
 static const struct v4l2_subdev_pad_ops ov5647_subdev_pad_ops = {
-	.enum_mbus_code		= ov5647_po_enum_mbus_code,
-	.enum_frame_size	= ov5647_po_enum_frame_size,
-	.enum_frame_interval	= ov5647_po_enum_frame_interval,
-	.get_fmt		= ov5647_po_get_fmt,
-	.set_fmt		= ov5647_po_set_fmt,
-	.get_crop		= ov5647_po_get_crop,
-	.set_crop		= ov5647_po_set_crop,
+	.enum_mbus_code	     = ov5647_po_enum_mbus_code,
+	.enum_frame_size     = ov5647_po_enum_frame_size,
+	.enum_frame_interval = ov5647_po_enum_frame_interval,
+	.get_fmt             = ov5647_po_get_fmt,
+	.set_fmt             = ov5647_po_set_fmt,
+	.get_crop            = ov5647_po_get_crop,
+	.set_crop            = ov5647_po_set_crop,
 };
 
 
@@ -783,8 +785,8 @@ ov5647_vo_set_stream(struct v4l2_subdev *sd, int on)
 }
 
 static const struct v4l2_subdev_video_ops ov5647_subdev_video_ops = {
-	.s_crystal_freq		= ov5647_vo_set_crystal_freq,
-	.s_stream			= ov5647_vo_set_stream,
+	.s_crystal_freq = ov5647_vo_set_crystal_freq,
+	.s_stream       = ov5647_vo_set_stream,
 };
 
 
@@ -897,12 +899,12 @@ static const struct of_device_id ov5647_of_match[] = {
 MODULE_DEVICE_TABLE(of, ov5647_of_match);
 
 static struct i2c_driver ov5647_driver = {
-	.probe		= ov5647_probe,
-	.remove		= ov5647_remove,
+	.probe = ov5647_probe,
+	.remove	= ov5647_remove,
 	.id_table	= ov5647_id,
-	.driver		= {
-		.owner		= THIS_MODULE,
-		.name		= DRIVER_NAME,
+	.driver = {
+		.owner = THIS_MODULE,
+		.name  = DRIVER_NAME,
 		.of_match_table	= ov5647_of_match,
 	},
 };
