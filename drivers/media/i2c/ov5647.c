@@ -310,7 +310,7 @@ static struct regval_list sensor_1296_728_30_regs[] = { //720: 1280*720@30fps
 
 
 
-static struct regval_list sensor_644_484_60_regs[] = { //VGA: 640*480@60fps
+static struct regval_list sensor_648_484_60_regs[] = { //VGA: 640*480@60fps
 	{ 0x3035, 0x21 }, //clk                
 	{ 0x3036, 0x64 }, //clk                
 	{ 0x303c, 0x11 }, //clk                
@@ -328,7 +328,7 @@ static struct regval_list sensor_644_484_60_regs[] = { //VGA: 640*480@60fps
 	{ 0x3814, 0x71 }, //h subsample inc    
 	{ 0x3815, 0x71 }, //v subsample inc    
 	{ 0x3808, 0x02 }, //[4:0]dvp h out high
-	{ 0x3809, 0x84 }, //[7:0]dvp h out low 
+	{ 0x3809, 0x88 }, //[7:0]dvp h out low 
 	{ 0x380a, 0x01 }, //[4:0]dvp v out high
 	{ 0x380b, 0xe4 }, //[7:0]dvp v out low 
 	{ 0x3800, 0x00 }, //[4:0]dvp h start   
@@ -336,7 +336,7 @@ static struct regval_list sensor_644_484_60_regs[] = { //VGA: 640*480@60fps
 	{ 0x3802, 0x00 }, //[4:0]dvp v start   
 	{ 0x3803, 0x00 }, //[7:0]dvp v start   
 	{ 0x3804, 0x0a }, //[4:0]dvp h end     
-	{ 0x3805, 0x3f }, //[7:0]dvp h end     
+	{ 0x3805, 0x4f }, //[7:0]dvp h end     
 	{ 0x3806, 0x07 }, //[4:0]dvp v end     
 	{ 0x3807, 0xaf }, //[7:0]dvp v end     
 	{ 0x3a08, 0x01 },
@@ -361,11 +361,11 @@ struct ov5647_framesize {
 
 static const struct ov5647_framesize ov5647_framesizes[] = {
 	{
-		.width  = 644,
+		.width  = 648,
 		.height = 484,
 		.fps    = 60,
-		.regs   = sensor_644_484_60_regs,
-		.regs_size = ARRAY_SIZE(sensor_644_484_60_regs)
+		.regs   = sensor_648_484_60_regs,
+		.regs_size = ARRAY_SIZE(sensor_648_484_60_regs)
 	}, {
 		.width  = 1296,
 		.height = 728,
@@ -899,7 +899,7 @@ static const struct of_device_id ov5647_of_match[] = {
 MODULE_DEVICE_TABLE(of, ov5647_of_match);
 
 static struct i2c_driver ov5647_driver = {
-	.probe = ov5647_probe,
+	.probe  = ov5647_probe,
 	.remove	= ov5647_remove,
 	.id_table	= ov5647_id,
 	.driver = {
