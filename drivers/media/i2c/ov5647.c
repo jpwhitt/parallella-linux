@@ -1,6 +1,7 @@
 /*
  * ov5647.c
  *
+ * Copyright (C) 2015 Sylvain Munaut <tnt@246tNt.com>
  * Copyright (C) 2015 Jason Whittaker <jpwhitt@yahoo.com>
  *
  * This program is free software; you can redistribute it and/or modify
