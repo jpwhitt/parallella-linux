@@ -3,6 +3,7 @@
  *
  * Based on axi-hdmi-rx.c
  *
+ * Copyright (C) 2015 Sylvain Munaut <tnt@246tNt.com>
  * Copyright (C) 2015 Jason Whittaker <jpwhitt@yahoo.com>
  * Copyright (C) 2012-2013 Analog Devices Inc.
  *
